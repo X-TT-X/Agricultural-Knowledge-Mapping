@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Knowledge Graph</title>
+		<script src="https://cdn.jsdelivr.net/npm/echarts@5.1.0/dist/echarts.min.js"></script>
+	</head>
+	<body>
+	<div class="nav">
+			农业知识图谱智能问答系统
+			<a href="{{ url_for('map.index1',id=id) }}" class="more" target="_blank" class="shezhi">个人中心</a>
+			<a href="{{ url_for('map.mapp',id=id) }}" target="_blank">知识图谱</a>
+			<a href="{{ url_for('map.question1',id=id) }}" class="wangpan" target="_blank">知识问答</a>
+			<a href="{{ url_for('map.recommend',id=id) }}" class="radio" target="_blank">知识卡片</a>
+		</div>
+		<div style="text-align: center; position:relative;">
+			<div id="chart"
+				style="width:100%; height: 900px; background-color: white;">
+			</div>
+			<div id="node-info"></div>
+			<div id="indicator">
+			</div>
+			<div id="aaa">
+				<div class="gz_search_tab">
+				<input type="text" id="searchInput">
+				<button onclick="search()">搜索</button>
+					</div>
+				<p style="color:#bdb2b2;float:left;">搜索记录</p><br><br>
+				<ul id="historyList" style="color:#A8A8A8;cursor: pointer;"></ul>
+				 <button onclick="clearHistory()" class="b1">清除历史记录</button>
+				<div class="a1">
+			<table>
+				<tr>
+					<td height="5"></td>
+				</tr>
+				<tr>
+					<td bgcolor="#aaaaff" height="5px" width="25px">&nbsp;</td>
+					<td>&nbsp;&nbsp;作物&nbsp;&nbsp;</td>
+				</tr>
+				<tr>
+					<td height="5"></td>
+				</tr>
+				<tr>
+					<td bgcolor="#9Fc0af" height="5px" width="25px">&nbsp;</td>
+					<td>&nbsp;&nbsp;病害&nbsp;&nbsp;</td>
+				</tr>
+				<tr>
+					<td height="5"></td>
+				</tr>
+				<tr>
+					<td bgcolor="#FFC0CB" height="5px" width="25px">&nbsp;</td>
+					<td>&nbsp;&nbsp;虫害&nbsp;&nbsp;</td>
+				</tr>
+				<tr>
+					<td height="5"></td>
+				</tr>
+				<tr>
+					<td bgcolor="#BA55D3" height="5px" width="25px">&nbsp;</td>
+					<td>&nbsp;&nbsp;症状&nbsp;&nbsp;</td>
+				</tr>
+				<tr>
+					<td height="5"></td>
+				</tr>
+				<tr>
+					<td bgcolor="#ca635f" height="5px" width="25px">&nbsp;</td>
+					<td>&nbsp;&nbsp;防治方法&nbsp;&nbsp;</td>
+				</tr>
+				<tr>
+					<td height="5"></td>
+				</tr>
+				<tr>
+					<td bgcolor="#CDCDCD" height="5px" width="25px">&nbsp;</td>
+					<td>&nbsp;&nbsp;其他&nbsp;&nbsp;</td>
+				</tr>
+			</table>
+		</div>
+			</div>
+			<div id="info">
+				<h4></h4>
+			</div>
+		</div>
+		<div style="text-align: center; position:relative;">
+			<svg width="960" height="240" style="margin-right:60px;margin-bottom:-40px;" id="svg1">
+				<g></g>
+			</svg>
+		</div>
+
+	</body>
+	<style type="text/css">
+		body {
+			background-color: white;
+			font-family: OpenSans-Light, PingFang SC, Hiragino Sans GB, Microsoft Yahei, Microsoft Jhenghei, sans-serif;
+			margin: 0;
+		}
+		.a1 {
+			margin-left: 10px;
+			color:black;
+			margin-top:120px;
+		}
+		.b1{
+		float: right;
+		width: 50px;
+		height:34px;
+		color:black;
+		background-color:-internal-light-dark(rgb(239, 239, 239), rgb(59, 59, 59));
+		border-radius: 3px;
+		border-width: 0;
+		margin: 0;
+		outline: none;
+		font-size: 10px;
+		font-weight: lighter;
+		text-align: center;
+		cursor: pointer;
+		}
+		#indicator {
+			position: absolute;
+			left: 60px;
+			bottom: 120px;
+			text-align: left;
+			color: #f2f2f2;
+			font-size: 12px;
+		}
+
+		#indicator>div {
+			margin-bottom: 4px;
+		}
+
+		#indicator span {
+			display: inline-block;
+			width: 30px;
+			height: 14px;
+			position: relative;
+			top: 2px;
+			margin-right: 8px;
+		}
+
+		.links line {
+			stroke: rgb(240, 240, 240);
+			stroke-opactity: 0.2;
+		}
+
+		.links line.inactive {
+			/*display: none !important;*/
+			stroke-opacity: 0;
+		}
+
+		.nodes circle {
+			stroke: #fff;
+			stroke-width: 1.5px;
+		}
+
+		.nodes circle:hover {
+			cursor: pointer;
+		}
+
+		.nodes circle.inactive {
+			display: none !important;
+		}
+
+		.texts text {
+			display: none;
+		}
+
+		.texts text:hover {
+			cursor: pointer;
+		}
+
+		.texts text.inactive {
+			display: none !important;
+		}
+
+
+
+		#mode {
+			position: absolute;
+			top: 160px;
+			left: 60px;
+		}
+
+		#mode span {
+			display: inline-block;
+			border: 1px solid #fff;
+			color: #fff;
+			padding: 6px 10px;
+			border-radius: 4px;
+			font-size: 14px;
+			transition: color, background-color .3s;
+			-o-transition: color, background-color .3s;
+			-ms-transition: color, background-color .3s;
+			-moz-transition: color, background-color .3s;
+			-webkit-transition: color, background-color .3s;
+		}
+
+		#mode span.active,
+		#mode span:hover {
+			background-color: #fff;
+			color: #333;
+			cursor: pointer;
+		}
+
+
+		#info {
+			position: absolute;
+			bottom: 40px;
+			right: 30px;
+			text-align: right;
+			width: 270px;
+		}
+
+
+		#info p {
+			color: #fff;
+			font-size: 12px;
+			margin-top: 0;
+			margin-bottom: 5px;
+		}
+
+		#info p span {
+			color: #888;
+			margin-right: 10px;
+		}
+
+		#info h4 {
+			color: #fff;
+		}
+		.gz_search_tab {
+			width: 250px;
+			height: 30px;
+			line-height: 28px;
+			background: #FFF;
+			border-radius: 5px 5px 5px 5px;
+			box-shadow: 0 0 10px #999;
+			padding-right:3px;
+		}
+
+		.gz_search_tab input[type="text"] {
+			font-size: 16px;
+			background: left center no-repeat;
+			height: 20px;
+			line-height: 20px;
+			border: 0;
+			text-indent: 10px;
+			outline: none;
+		}
+
+		.select {
+			font-size: 5px;
+			border: 1px solid #bdb2b2;
+			border-radius: 5px;
+			outline: none;
+			width: 250px;
+			height: 20px;
+			line-height: 40px;
+			background: no-repeat right center transparent;
+			color: #bdb2b2;
+		}
+
+		#aaa {
+			position: absolute;
+			top: 100px;
+			left: 20px;
+			color: #fff;
+			border: none;
+			outline: none;
+			box-shadow: none;
+		}
+		 #node-info {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: none; /* 初始状态隐藏节点信息 */
+        }
+      .nav a {
+				display: inline-table;
+				font: 13px/23px Arial, sans-serif;
+				text-decoration: none;
+				color: #222;
+				font-weight: 500;
+				float: right;
+				font-size: 16px;
+				color: rgb(105, 142, 106);
+				padding-top: 3px;
+				padding-right: 120px;
+			}
+
+			.nav a:hover {
+				color: #73AE52;
+			}
+
+			.nav {
+				width: 100%;
+				height: 45px;
+				background-color: #FBF1D7;
+				font-size: 18px;
+				font-weight: 600;
+				font-family: 'Courier New' '微软雅黑';
+				color: rgb(105, 142, 106);
+				padding-top: 15px;
+				padding-left: 50px;
+			}
+	</style>
+	<script type="text/javascript">
+
+		var searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    search();
+                }
+            });
+		function search() {
+            var keyword = document.getElementById('searchInput').value;
+            if (keyword.trim() !== '') {
+                // 保存搜索记录到本地存储
+                var history = localStorage.getItem('searchHistory') || '';
+                history += keyword + ',';
+                localStorage.setItem('searchHistory', history);
+
+                // 跳转到搜索结果页面
+                var searchValue = encodeURIComponent(keyword);
+                window.location.assign("/searchh/" + {{id}} + "/" + searchValue + "/");
+            }
+        }
+
+        function loadHistory() {
+            var history = localStorage.getItem('searchHistory');
+            if (history) {
+                var historyArr = history.split(',');
+                var historyList = document.getElementById('historyList');
+                historyList.innerHTML = '';
+                for (var i = historyArr.length - 1; i >= 0; i--) {
+                    if (historyArr[i].trim() !== '') {
+                        var listItem = document.createElement('li');
+                        var searchValue = encodeURIComponent(historyArr[i]);
+
+                        listItem.innerHTML = '<a onclick="goToSearch(\'' + {{id}} + '\', \'' + searchValue + '\')">' + historyArr[i] + '</a>';
+                        historyList.appendChild(listItem);
+                    }
+                }
+            }
+        }
+
+        function goToSearch(id, searchValue) {
+            window.location.assign("/searchh/" + {{id}} + "/" + searchValue + "/");
+        }
+		function clearHistory() {
+            localStorage.removeItem('searchHistory');
+            var historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+        }
+        window.onload = function() {
+            loadHistory();
+        };
+<!--		fetch('/node_data')-->
+<!--        .then(response => response.json())-->
+<!--        .then(chartData => {-->
+			var chartData = '{{ chart_data | tojson | safe }}';
+
+            chartData = JSON.parse(chartData.replace(/\n/g,"\\n").replace(/\r/g,"\\r"));
+
+            var colorPalette = ['#aaaaff','#9Fc0af','#FFC0CB','#ca635f', '#FFC0CB', '#BA55D3', '#1E90FF', '#7FFFD4', '#FFFF00'];
+
+            var chartDom = document.getElementById('chart');
+            var myChart = echarts.init(chartDom);
+
+            var option = {
+                series: [
+                    {
+                        type: 'graph',
+                        layout: 'force',
+                        roam: true,
+                        symbolSize: 80,
+                        draggable: true,
+                        force: {
+                            repulsion: 1000,
+                            edgeLength: [100, 300],
+                            layoutAnimation: true,
+                            drag: true,
+                            focusNodeAdjacency: true,
+                            preventOverlap: true,
+                            seriesDraggable: true
+                        },
+                        label: {
+                            show: true,
+                            fontSize: 14,
+                            formatter: function(params) {
+                                  if((params.data.id).length<=10){
+									return params.data.id;
+								  }else {
+									return (params.data.id).slice(0,10) + '...';
+
+								  }
+                            },
+                            position: 'inside',
+                            distance: 10,
+                            draggable: true,
+                        },
+                        edgeSymbol: ['arrow', 'none'],
+                        edgeSymbolSize: [6, 0],
+                        edgeLabel: {
+                            fontSize: 12,
+                            color: '#888'
+                        },
+                        data: chartData.nodes,
+                        links: chartData.links,
+                        emphasis: {
+                            focus: 'adjacency',
+                            lineStyle: {
+                                width: 10
+                            }
+                        },
+                        lineStyle: {
+                            curveness: 0.2,
+                            color: '#999'
+                        },
+                        itemStyle: {
+<!--                            color: function (params) {-->
+<!--                                return colorPalette[params.data.group % colorPalette.length];-->
+<!--                            }-->
+                            color: function(params) {
+								// 添加根据 class 显示颜色的逻辑
+								const classValue = params.data.class;
+								const colorMap = {
+									"作物": "#aaaaff",
+									"病害": "#9Fc0af",
+									"虫害": "#FFC0CB",
+									"症状":"#BA55D3",
+									"防治方法":"#ca635f",
+									// 其他 class
+								};
+								return colorMap[classValue]||'#CDCDCD';
+							}
+                        },
+
+                    }
+                ]
+            };
+
+            myChart.setOption(option);
+
+            myChart.on('click', function(params) {
+                if (params.dataType === 'node') {
+                    var nodeInfo = document.getElementById('node-info');
+                    nodeInfo.innerText = params.data.class + '\n' + params.data.id;
+                    nodeInfo.style.display = 'block';
+                }
+            });
+            myChart.setOption(option);
+			myChart.on('mouseup', function(params) {
+				var option = myChart.getOption();
+				option.series[0].data[params.dataIndex].x = params.event.offsetX;
+				option.series[0].data[params.dataIndex].y = params.event.offsetY;
+				option.series[0].data[params.dataIndex].fixed = true;
+				myChart.setOption(option);
+			});
+<!--        });-->
+	</script>
+</html>
